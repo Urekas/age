@@ -3,218 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FIH 하키 월드컵 예선 참가국 분석</title>
+    <title>FIH 월드컵 예선: 4개국 정밀 분석</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; }
-        #plot-container { height: calc(100vh - 120px); min-height: 600px; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        #chart-area { height: 750px; width: 100%; }
+        .chart-container { background: white; border-radius: 1rem; shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-10">
 
-    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <header class="mb-6">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">FIH 하키 월드컵 예선 - 4개국 스쿼드 분석 대시보드</h1>
-            <p class="text-gray-500">대한민국, 오스트리아, 잉글랜드, 이탈리아 선수단의 연령(Age) 대비 A매치 출장수(Caps) 분포</p>
-        </header>
-
-        <!-- 대시보드 그래프 영역 -->
-        <div id="plot-container" class="w-full border border-gray-100 rounded-lg"></div>
+    <div class="max-w-7xl mx-auto chart-container overflow-hidden shadow-2xl">
+        <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold italic">FIH 2026 WOMEN'S WORLD CUP QUALIFIERS</h1>
+                <p class="text-slate-400 text-sm">Age vs Caps: Interactive Squad Analysis</p>
+            </div>
+            <div class="text-right hidden md:block">
+                <span class="text-xs bg-indigo-500 px-2 py-1 rounded">LIVE DASHBOARD</span>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div id="chart-area"></div>
+        </div>
     </div>
 
     <script>
-        // 전체 선수 데이터 파싱 및 가공 (결측치는 0경기로 처리)
-        const playersData = [
+        const rawData = [
             // 오스트리아
-            { name: "BAUER Katharina", age: 22, caps: 23, country: "오스트리아" },
-            { name: "BUCHTA Daria", age: 27, caps: 49, country: "오스트리아" },
-            { name: "CZECH Johanna", age: 23, caps: 31, country: "오스트리아" },
-            { name: "FELBER Fiona", age: 25, caps: 38, country: "오스트리아" },
-            { name: "HAHNENKAMP Marie", age: 26, caps: 21, country: "오스트리아" },
-            { name: "HASELSTEINER Anja", age: 19, caps: 8, country: "오스트리아" },
-            { name: "HERZOG Helene", age: 24, caps: 28, country: "오스트리아" },
-            { name: "KEMPER Carla", age: 23, caps: 23, country: "오스트리아" },
-            { name: "KERN Laura", age: 23, caps: 27, country: "오스트리아" },
-            { name: "KÖLBL Celina", age: 16, caps: 0, country: "오스트리아" },
-            { name: "LENDL Elena", age: 17, caps: 1, country: "오스트리아" },
-            { name: "MAYER Luisa", age: 26, caps: 32, country: "오스트리아" },
-            { name: "MINAR Amelie", age: 21, caps: 6, country: "오스트리아" },
-            { name: "PROKSCH Katharina", age: 21, caps: 25, country: "오스트리아" },
-            { name: "PROKSCH Philippa", age: 18, caps: 8, country: "오스트리아" },
-            { name: "PULTAR Marianne", age: 31, caps: 64, country: "오스트리아" },
-            { name: "STREB Michaela", age: 24, caps: 5, country: "오스트리아" },
-            { name: "VUKOVICH Kristine", age: 37, caps: 76, country: "오스트리아" },
-            
-            // 잉글랜드
-            { name: "BALSDON Grace", age: 32, caps: 98, country: "잉글랜드" },
-            { name: "BINGHAM Lottie", age: 20, caps: 11, country: "잉글랜드" },
-            { name: "BOURNE Darcy", age: 24, caps: 31, country: "잉글랜드" },
-            { name: "CRACKLES Fiona", age: 26, caps: 61, country: "잉글랜드" },
-            { name: "CURTIS Katie", age: 23, caps: 23, country: "잉글랜드" },
-            { name: "HAMILTON Sophie", age: 25, caps: 56, country: "잉글랜드" },
-            { name: "HEESH Sabbie", age: 34, caps: 37, country: "잉글랜드" },
-            { name: "HOWARD Tessa", age: 27, caps: 59, country: "잉글랜드" },
-            { name: "HUNT Holly", age: 28, caps: 44, country: "잉글랜드" },
-            { name: "MALZER Alexandra", age: 25, caps: 30, country: "잉글랜드" },
-            { name: "MANTON Becky", age: 24, caps: 14, country: "잉글랜드" },
-            { name: "NEAL Elizabeth", age: 27, caps: 49, country: "잉글랜드" },
-            { name: "OWSLEY Lily", age: 31, caps: 139, country: "잉글랜드" },
-            { name: "PEEL Flora", age: 29, caps: 52, country: "잉글랜드" },
-            { name: "PRITCHARD Miriam", age: 27, caps: 18, country: "잉글랜드" },
-            { name: "RAYER Elena", age: 29, caps: 91, country: "잉글랜드" },
-            { name: "TAYLOR Martha", age: 24, caps: 36, country: "잉글랜드" },
-            { name: "THOMPSON Amy", age: 25, caps: 3, country: "잉글랜드" },
-            { name: "TOMAN Anna", age: 32, caps: 86, country: "잉글랜드" },
-            { name: "WALKER Lily", age: 23, caps: 58, country: "잉글랜드" },
-
-            // 이탈리아
-            { name: "BORMIDA Elettra", age: 27, caps: 41, country: "이탈리아" },
-            { name: "BREA Lola", age: 25, caps: 10, country: "이탈리아" },
-            { name: "CARTA Federica", age: 25, caps: 79, country: "이탈리아" },
-            { name: "CARUSO Lucia Ines", age: 28, caps: 29, country: "이탈리아" },
-            { name: "DALLA VITTORIA Teresa", age: 29, caps: 6, country: "이탈리아" },
-            { name: "DI PAOLA Eleonora", age: 18, caps: 1, country: "이탈리아" },
-            { name: "FIORELLI M. Agustina", age: 28, caps: 12, country: "이탈리아" },
-            { name: "GRANATTO Delfina", age: 29, caps: 12, country: "이탈리아" },
-            { name: "GRINBAUM Martina", age: 25, caps: 0, country: "이탈리아" },
-            { name: "LAURITO Sofia", age: 32, caps: 58, country: "이탈리아" },
-            { name: "LUNGHI Maria", age: 28, caps: 15, country: "이탈리아" },
-            { name: "MALDONADO Sofia", age: 31, caps: 28, country: "이탈리아" },
-            { name: "MORAS Guadalupe", age: 24, caps: 22, country: "이탈리아" },
-            { name: "MUNITIS Emilia", age: 29, caps: 50, country: "이탈리아" },
-            { name: "OVIEDO Ailin", age: 35, caps: 40, country: "이탈리아" },
-            { name: "PASTOR Maria", age: 36, caps: 0, country: "이탈리아" },
-            { name: "PESSINA Ivanna", age: 35, caps: 60, country: "이탈리아" },
-            { name: "PUGLISI Sara", age: 25, caps: 62, country: "이탈리아" },
-            { name: "SARNARI Ilaria", age: 26, caps: 22, country: "이탈리아" },
-            { name: "TORBOL Maria", age: 21, caps: 0, country: "이탈리아" },
-
+            { name: "BAUER Katharina", age: 22, caps: 23, country: "오스트리아", color: "#3b82f6" },
+            { name: "BUCHTA Daria", age: 27, caps: 49, country: "오스트리아", color: "#3b82f6" },
+            { name: "CZECH Johanna", age: 23, caps: 31, country: "오스트리아", color: "#3b82f6" },
+            { name: "FELBER Fiona", age: 25, caps: 38, country: "오스트리아", color: "#3b82f6" },
+            { name: "HAHNENKAMP Marie", age: 26, caps: 21, country: "오스트리아", color: "#3b82f6" },
+            { name: "HASELSTEINER Anja", age: 19, caps: 8, country: "오스트리아", color: "#3b82f6" },
+            { name: "HERZOG Helene", age: 24, caps: 28, country: "오스트리아", color: "#3b82f6" },
+            { name: "KEMPER Carla", age: 23, caps: 23, country: "오스트리아", color: "#3b82f6" },
+            { name: "KERN Laura", age: 23, caps: 27, country: "오스트리아", color: "#3b82f6" },
+            { name: "KÖLBL Celina", age: 16, caps: 0, country: "오스트리아", color: "#3b82f6" },
+            { name: "LENDL Elena", age: 17, caps: 1, country: "오스트리아", color: "#3b82f6" },
+            { name: "MAYER Luisa", age: 26, caps: 32, country: "오스트리아", color: "#3b82f6" },
+            { name: "MINAR Amelie", age: 21, caps: 6, country: "오스트리아", color: "#3b82f6" },
+            { name: "PROKSCH Katharina", age: 21, caps: 25, country: "오스트리아", color: "#3b82f6" },
+            { name: "PROKSCH Philippa", age: 18, caps: 8, country: "오스트리아", color: "#3b82f6" },
+            { name: "PULTAR Marianne", age: 31, caps: 64, country: "오스트리아", color: "#3b82f6" },
+            { name: "STREB Michaela", age: 24, caps: 5, country: "오스트리아", color: "#3b82f6" },
+            { name: "VUKOVICH Kristine", age: 37, caps: 76, country: "오스트리아", color: "#3b82f6" },
             // 대한민국
-            { name: "조혜진", age: 31, caps: 153, country: "대한민국" },
-            { name: "최지윤", age: 22, caps: 22, country: "대한민국" },
-            { name: "최사라", age: 22, caps: 3, country: "대한민국" },
-            { name: "홍솔빛나라", age: 21, caps: 0, country: "대한민국" },
-            { name: "제민영", age: 27, caps: 2, country: "대한민국" },
-            { name: "정란경", age: 21, caps: 0, country: "대한민국" },
-            { name: "지유진", age: 25, caps: 11, country: "대한민국" },
-            { name: "진수연", age: 27, caps: 18, country: "대한민국" },
-            { name: "김지원", age: 24, caps: 0, country: "대한민국" }, // 연령 누락 임의 평균 24세 처리
-            { name: "김정주", age: 24, caps: 1, country: "대한민국" },
-            { name: "김민지", age: 26, caps: 10, country: "대한민국" },
-            { name: "김선아", age: 25, caps: 35, country: "대한민국" },
-            { name: "이가은", age: 24, caps: 6, country: "대한민국" },
-            { name: "이주연", age: 25, caps: 9, country: "대한민국" },
-            { name: "이서연", age: 23, caps: 10, country: "대한민국" },
-            { name: "이유진", age: 23, caps: 30, country: "대한민국" },
-            { name: "이유리", age: 31, caps: 133, country: "대한민국" },
-            { name: "문승화", age: 29, caps: 0, country: "대한민국" },
-            { name: "박승애", age: 26, caps: 48, country: "대한민국" },
-            { name: "박영은", age: 22, caps: 18, country: "대한민국" }
+            { name: "조혜진", age: 31, caps: 153, country: "대한민국", color: "#ef4444" },
+            { name: "최지윤", age: 22, caps: 22, country: "대한민국", color: "#ef4444" },
+            { name: "최사라", age: 22, caps: 3, country: "대한민국", color: "#ef4444" },
+            { name: "홍솔빛나라", age: 21, caps: 0, country: "대한민국", color: "#ef4444" },
+            { name: "제민영", age: 27, caps: 2, country: "대한민국", color: "#ef4444" },
+            { name: "정란경", age: 21, caps: 0, country: "대한민국", color: "#ef4444" },
+            { name: "지유진", age: 25, caps: 11, country: "대한민국", color: "#ef4444" },
+            { name: "진수연", age: 27, caps: 18, country: "대한민국", color: "#ef4444" },
+            { name: "김지원", age: 24, caps: 0, country: "대한민국", color: "#ef4444" },
+            { name: "김정주", age: 24, caps: 1, country: "대한민국", color: "#ef4444" },
+            { name: "김민지", age: 26, caps: 10, country: "대한민국", color: "#ef4444" },
+            { name: "김선아", age: 25, caps: 35, country: "대한민국", color: "#ef4444" },
+            { name: "이가은", age: 24, caps: 6, country: "대한민국", color: "#ef4444" },
+            { name: "이주연", age: 25, caps: 9, country: "대한민국", color: "#ef4444" },
+            { name: "이서연", age: 23, caps: 10, country: "대한민국", color: "#ef4444" },
+            { name: "이유진", age: 23, caps: 30, country: "대한민국", color: "#ef4444" },
+            { name: "이유리", age: 31, caps: 133, country: "대한민국", color: "#ef4444" },
+            { name: "문승화", age: 29, caps: 0, country: "대한민국", color: "#ef4444" },
+            { name: "박승애", age: 26, caps: 48, country: "대한민국", color: "#ef4444" },
+            { name: "박영은", age: 22, caps: 18, country: "대한민국", color: "#ef4444" },
+            // 잉글랜드
+            { name: "OWSLEY Lily", age: 31, caps: 139, country: "잉글랜드", color: "#10b981" },
+            { name: "BALSDON Grace", age: 32, caps: 98, country: "잉글랜드", color: "#10b981" },
+            { name: "RAYER Elena", age: 29, caps: 91, country: "잉글랜드", color: "#10b981" },
+            { name: "TOMAN Anna", age: 32, caps: 86, country: "잉글랜드", color: "#10b981" },
+            { name: "CRACKLES Fiona", age: 26, caps: 61, country: "잉글랜드", color: "#10b981" },
+            { name: "WALKER Lily", age: 23, caps: 58, country: "잉글랜드", color: "#10b981" },
+            { name: "HAMILTON Sophie", age: 25, caps: 56, country: "잉글랜드", color: "#10b981" },
+            { name: "HOWARD Tessa", age: 27, caps: 59, country: "잉글랜드", color: "#10b981" },
+            // 이탈리아
+            { name: "CARTA Federica", age: 25, caps: 79, country: "이탈리아", color: "#8b5cf6" },
+            { name: "PUGLISI Sara", age: 25, caps: 62, country: "이탈리아", color: "#8b5cf6" },
+            { name: "PESSINA Ivanna", age: 35, caps: 60, country: "이탈리아", color: "#8b5cf6" },
+            { name: "LAURITO Sofia", age: 32, caps: 58, country: "이탈리아", color: "#8b5cf6" },
+            { name: "MUNITIS Emilia", age: 29, caps: 50, country: "이탈리아", color: "#8b5cf6" },
+            { name: "OVIEDO Ailin", age: 35, caps: 40, country: "이탈리아", color: "#8b5cf6" }
         ];
 
-        // 전체 평균 계산
-        const totalPlayers = playersData.length;
-        const globalAvgAge = playersData.reduce((sum, p) => sum + p.age, 0) / totalPlayers;
-        const globalAvgCaps = playersData.reduce((sum, p) => sum + p.caps, 0) / totalPlayers;
+        const countries = ["대한민국", "오스트리아", "잉글랜드", "이탈리아"];
+        const countryColors = { "대한민국": "#ef4444", "오스트리아": "#3b82f6", "잉글랜드": "#10b981", "이탈리아": "#8b5cf6" };
 
-        // 국가별 색상 및 그룹핑 준비
-        const colorMap = {
-            "대한민국": "#ef4444",   // Red
-            "오스트리아": "#3b82f6", // Blue
-            "잉글랜드": "#10b981",  // Green
-            "이탈리아": "#8b5cf6"    // Purple
-        };
-
-        const countries = Object.keys(colorMap);
-        const traces = [];
-        const avgMarkers = { x: [], y: [], text: [], mode: 'markers+text', marker: { symbol: 'star', size: 14, color: '#f59e0b', line: {width: 1, color: '#78350f'} }, name: '국가별 평균 좌표', textposition: 'bottom center', textfont: { weight: 'bold', color: '#b45309' } };
-
-        countries.forEach(country => {
-            const cPlayers = playersData.filter(p => p.country === country);
-            
-            // 각 국가별 평균 계산
-            const cAvgAge = cPlayers.reduce((sum, p) => sum + p.age, 0) / cPlayers.length;
-            const cAvgCaps = cPlayers.reduce((sum, p) => sum + p.caps, 0) / cPlayers.length;
-
-            avgMarkers.x.push(cAvgAge);
-            avgMarkers.y.push(cAvgCaps);
-            avgMarkers.text.push(`${country} 평균<br>(${cAvgAge.toFixed(1)}세, ${cAvgCaps.toFixed(1)}경기)`);
-
-            // 선수별 데이터 정리
-            const trace = {
-                x: cPlayers.map(p => p.age),
-                y: cPlayers.map(p => p.caps),
-                text: cPlayers.map(p => {
-                    // 대한민국 선수는 모두 표시, 타 국가는 전체 평균 경기수 이상 베테랑만 표시
-                    if (country === "대한민국" || p.caps >= globalAvgCaps) {
-                        return p.name;
-                    }
-                    return "";
-                }),
-                mode: 'markers+text',
-                type: 'scatter',
-                name: country,
-                textposition: 'top center',
-                textfont: { size: 10 },
-                marker: { size: 10, color: colorMap[country], opacity: 0.8, line: {width: 1, color: 'white'} },
-                hovertemplate: '<b>%{text}</b><br>나이: %{x}세<br>경기수: %{y} Caps<extra></extra>'
-            };
-            
-            // 호버 텍스트가 빈 문자열(이름 안 보이는 선수)인 경우 대체 호버 텍스트 적용
-            trace.hovertemplate = cPlayers.map(p => 
-                `<b>${p.name}</b><br>소속: ${country}<br>나이: ${p.age}세<br>출장: ${p.caps}경기<extra></extra>`
-            );
-            
-            traces.push(trace);
-        });
-
-        // 가상 평균점 트레이스를 가장 마지막에 추가 (최상단 노출)
-        traces.push(avgMarkers);
+        function createTraces() {
+            return countries.map(country => {
+                const cPlayers = rawData.filter(p => p.country === country);
+                return {
+                    x: cPlayers.map(p => p.age),
+                    y: cPlayers.map(p => p.caps),
+                    text: cPlayers.map(p => p.name),
+                    mode: 'markers',
+                    name: country,
+                    marker: {
+                        size: 12,
+                        color: countryColors[country],
+                        opacity: 0.3, // 기본 상태는 흐리게
+                        line: { width: 1, color: 'white' }
+                    },
+                    customdata: cPlayers.map(p => p.country),
+                    hovertemplate: '<b>%{text}</b><br>국가: %{customdata}<br>나이: %{x}세<br>출장: %{y}경기<extra></extra>'
+                };
+            });
+        }
 
         const layout = {
-            hovermode: 'closest',
-            xaxis: { title: '선수 나이 (세)', titlefont: { weight: 'bold' }, showgrid: true, zeroline: false, range: [15, 40] },
-            yaxis: { title: 'A매치 출장 수 (Caps)', titlefont: { weight: 'bold' }, showgrid: true, zeroline: false },
+            xaxis: { title: '선수 나이 (Age)', range: [15, 40], gridcolor: '#f1f5f9' },
+            yaxis: { title: 'A매치 출장 수 (Caps)', gridcolor: '#f1f5f9' },
+            showlegend: true,
+            legend: { x: 1, y: 1, xanchor: 'right', bgcolor: 'rgba(255,255,255,0.8)' },
             margin: { l: 60, r: 40, t: 40, b: 60 },
-            legend: { orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center' },
+            hovermode: 'closest',
+            plot_bgcolor: 'white',
             shapes: [
-                // 전체 평균 나이 점선 (X축)
-                {
-                    type: 'line',
-                    x0: globalAvgAge, y0: 0,
-                    x1: globalAvgAge, y1: 160,
-                    line: { color: 'gray', width: 2, dash: 'dash' }
-                },
-                // 전체 평균 경기수 점선 (Y축)
-                {
-                    type: 'line',
-                    x0: 15, y0: globalAvgCaps,
-                    x1: 40, y1: globalAvgCaps,
-                    line: { color: 'gray', width: 2, dash: 'dash' }
-                }
-            ],
-            annotations: [
-                {
-                    x: globalAvgAge, y: 155,
-                    xref: 'x', yref: 'y',
-                    text: `전체 평균 나이 (${globalAvgAge.toFixed(1)}세)`,
-                    showarrow: false, xanchor: 'left', xshift: 5,
-                    font: { color: 'gray', size: 12 }
-                },
-                {
-                    x: 38, y: globalAvgCaps,
-                    xref: 'x', yref: 'y',
-                    text: `전체 평균 경기수 (${globalAvgCaps.toFixed(1)}경기)`,
-                    showarrow: false, yanchor: 'bottom', yshift: 5,
-                    font: { color: 'gray', size: 12 }
-                }
+                { type: 'line', x0: 25.8, y0: 0, x1: 25.8, y1: 160, line: { color: '#cbd5e1', width: 1, dash: 'dot' } },
+                { type: 'line', x0: 15, y0: 32.3, x1: 40, y1: 32.3, line: { color: '#cbd5e1', width: 1, dash: 'dot' } }
             ]
         };
 
-        const config = { responsive: true, displayModeBar: false };
+        Plotly.newPlot('chart-area', createTraces(), layout, {responsive: true});
 
-        Plotly.newPlot('plot-container', traces, layout, config);
+        const myPlot = document.getElementById('chart-area');
+
+        // 마우스 오버 이벤트: 같은 국가 선수들 하이라이트
+        myPlot.on('plotly_hover', function(data){
+            const hoveredCountry = data.points[0].customdata;
+            const update = {
+                'marker.opacity': countries.map(c => c === hoveredCountry ? 1.0 : 0.1),
+                'marker.size': countries.map(c => c === hoveredCountry ? 15 : 8)
+            };
+            Plotly.restyle('chart-area', update);
+        });
+
+        // 마우스 아웃 이벤트: 다시 원래대로 (흐리게)
+        myPlot.on('plotly_unhover', function(data){
+            const update = {
+                'marker.opacity': 0.3,
+                'marker.size': 12
+            };
+            Plotly.restyle('chart-area', update);
+        });
+
     </script>
 </body>
 </html>
