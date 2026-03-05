@@ -3,123 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FIH 2026 월드컵 예선: 정밀 데이터 분석</title>
+    <title>FIH 2026 월드컵 예선 분석 대시보드</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
-        #chart-area { height: 750px; width: 100%; }
-        .dashboard-card { background: white; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        #chart-area { height: 800px; width: 100%; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-10">
 
-    <div class="max-w-7xl mx-auto dashboard-card overflow-hidden">
-        <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
-            <h1 class="text-2xl font-extrabold tracking-tight">FIH 2026 WOMEN'S WORLD CUP QUALIFIERS</h1>
+    <div class="max-w-7xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-slate-900 p-8 text-white">
+            <h1 class="text-3xl font-black tracking-tight italic">FIH 2026 월드컵 예선 7개국 연령x경기수 비교 그래프</h1>
+            <p class="text-slate-400 mt-2 font-medium">대한민국(한글명 적용 완료) 포함 총 135명 풀스쿼드 정밀 분석</p>
         </div>
+        
         <div class="p-6">
             <div id="chart-area"></div>
+        </div>
+
+        <div class="p-8 bg-slate-50 border-t border-slate-100">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">📊 국가별 평균 지표 (Age & Caps)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4" id="stats-summary"></div>
         </div>
     </div>
 
     <script>
-        const allPlayers = [
-            // 대한민국 (홍솔벗나라 성함 수정 완료)
-            { name: "조혜진", no: 11, age: 31, caps: 153, country: "대한민국" },
-            { name: "최지윤", no: 12, age: 22, caps: 22, country: "대한민국" },
-            { name: "최사라", no: 15, age: 22, caps: 3, country: "대한민국" },
-            { name: "홍솔벗나라", no: 4, age: 21, caps: 0, country: "대한민국" },
-            { name: "제민영", no: 2, age: 27, caps: 2, country: "대한민국" },
-            { name: "정란경", no: 25, age: 21, caps: 0, country: "대한민국" },
-            { name: "지유진", no: 14, age: 25, caps: 11, country: "대한민국" },
-            { name: "진수연", no: 17, age: 27, caps: 18, country: "대한민국" },
-            { name: "김지원", no: 16, age: 24, caps: 0, country: "대한민국" },
-            { name: "김정주", no: 5, age: 24, caps: 1, country: "대한민국" },
-            { name: "김민지", no: 19, age: 26, caps: 10, country: "대한민국" },
-            { name: "김선아", no: 8, age: 25, caps: 35, country: "대한민국" },
-            { name: "이가은", no: 23, age: 24, caps: 6, country: "대한민국" },
-            { name: "이주연", no: 22, age: 25, caps: 9, country: "대한민국" },
-            { name: "이서연", no: 1, age: 23, caps: 10, country: "대한민국" },
-            { name: "이유진", no: 6, age: 23, caps: 30, country: "대한민국" },
-            { name: "이유리", no: 7, age: 31, caps: 133, country: "대한민국" },
-            { name: "문승화", no: 13, age: 29, caps: 0, country: "대한민국" },
-            { name: "박승애", no: 9, age: 26, caps: 48, country: "대한민국" },
-            { name: "박영은", no: 18, age: 22, caps: 18, country: "대한민국" },
-            // 타국가 생략 없이 그대로 유지 (데이터 정합성 유지)
-            { name: "BAUER Katharina", no: 11, age: 22, caps: 23, country: "오스트리아" },
-            { name: "BUCHTA Daria", no: 24, age: 27, caps: 49, country: "오스트리아" },
-            { name: "CZECH Johanna", no: 6, age: 23, caps: 31, country: "오스트리아" },
-            { name: "FELBER Fiona", no: 25, age: 25, caps: 38, country: "오스트리아" },
-            { name: "HAHNENKAMP Marie", no: 17, age: 26, caps: 21, country: "오스트리아" },
-            { name: "HASELSTEINER Anja", no: 28, age: 19, caps: 8, country: "오스트리아" },
-            { name: "HERZOG Helene", no: 5, age: 24, caps: 28, country: "오스트리아" },
-            { name: "KEMPER Carla", no: 2, age: 23, caps: 23, country: "오스트리아" },
-            { name: "KERN Laura", no: 19, age: 23, caps: 27, country: "오스트리아" },
-            { name: "KÖLBL Celina", no: 29, age: 16, caps: 0, country: "오스트리아" },
-            { name: "LENDL Elena", no: 20, age: 17, caps: 1, country: "오스트리아" },
-            { name: "MAYER Luisa", no: 4, age: 26, caps: 32, country: "오스트리아" },
-            { name: "MINAR Amelie", no: 12, age: 21, caps: 6, country: "오스트리아" },
-            { name: "PROKSCH Katharina", no: 15, age: 21, caps: 25, country: "오스트리아" },
-            { name: "PROKSCH Philippa", no: 14, age: 18, caps: 8, country: "오스트리아" },
-            { name: "PULTAR Marianne", no: 21, age: 31, caps: 64, country: "오스트리아" },
-            { name: "STREB Michaela", no: 33, age: 24, caps: 5, country: "오스트리아" },
-            { name: "VUKOVICH Kristine", no: 10, age: 37, caps: 76, country: "오스트리아" },
-            { name: "BALSDON Grace", no: 31, age: 32, caps: 98, country: "잉글랜드" },
-            { name: "BINGHAM Lottie", no: 44, age: 20, caps: 11, country: "잉글랜드" },
-            { name: "BOURNE Darcy", no: 23, age: 24, caps: 31, country: "잉글랜드" },
-            { name: "CRACKLES Fiona", no: 21, age: 26, caps: 61, country: "잉글랜드" },
-            { name: "CURTIS Katie", no: 18, age: 23, caps: 23, country: "잉글랜드" },
-            { name: "HAMILTON Sophie", no: 2, age: 25, caps: 56, country: "잉글랜드" },
-            { name: "HEESH Sabbie", no: 25, age: 34, caps: 37, country: "잉글랜드" },
-            { name: "HOWARD Tessa", no: 14, age: 27, caps: 59, country: "잉글랜드" },
-            { name: "HUNT Holly", no: 11, age: 28, caps: 44, country: "잉글랜드" },
-            { name: "MALZER Alexandra", no: 5, age: 25, caps: 30, country: "잉글랜드" },
-            { name: "MANTON Becky", no: 3, age: 24, caps: 14, country: "잉글랜드" },
-            { name: "NEAL Elizabeth", no: 22, age: 27, caps: 49, country: "잉글랜드" },
-            { name: "OWSLEY Lily", no: 26, age: 31, caps: 139, country: "잉글랜드" },
-            { name: "PEEL Flora", no: 28, age: 29, caps: 52, country: "잉글랜드" },
-            { name: "PRITCHARD Miriam", no: 40, age: 27, caps: 18, country: "잉글랜드" },
-            { name: "RAYER Elena", no: 13, age: 29, caps: 91, country: "잉글랜드" },
-            { name: "TAYLOR Martha", no: 30, age: 24, caps: 36, country: "잉글랜드" },
-            { name: "THOMPSON Amy", no: 10, age: 25, caps: 3, country: "잉글랜드" },
-            { name: "TOMAN Anna", no: 6, age: 32, caps: 86, country: "잉글랜드" },
-            { name: "WALKER Lily", no: 4, age: 23, caps: 58, country: "잉글랜드" },
-            { name: "BORMIDA Elettra", no: 17, age: 27, caps: 41, country: "이탈리아" },
-            { name: "BREA Lola", no: 13, age: 25, caps: 10, country: "이탈리아" },
-            { name: "CARTA Federica", no: 18, age: 25, caps: 79, country: "이탈리아" },
-            { name: "CARUSO Lucia Ines", no: 12, age: 28, caps: 29, country: "이탈리아" },
-            { name: "DALLA VITTORIA Teresa", no: 3, age: 29, caps: 6, country: "이탈리아" },
-            { name: "DI PAOLA Eleonora", no: 8, age: 18, caps: 1, country: "이탈리아" },
-            { name: "FIORELLI M. Agustina", no: 22, age: 28, caps: 12, country: "이탈리아" },
-            { name: "GRANATTO Delfina", no: 25, age: 29, caps: 12, country: "이탈리아" },
-            { name: "GRINBAUM Martina", no: 6, age: 25, caps: 0, country: "이탈리아" },
-            { name: "LAURITO Sofia", no: 26, age: 32, caps: 58, country: "이탈리아" },
-            { name: "LUNGHI Maria", no: 15, age: 28, caps: 15, country: "이탈리아" },
-            { name: "MALDONADO Sofia", no: 27, age: 31, caps: 28, country: "이탈리아" },
-            { name: "MORAS Guadalupe", no: 9, age: 24, caps: 22, country: "이탈리아" },
-            { name: "MUNITIS Emilia", no: 7, age: 29, caps: 50, country: "이탈리아" },
-            { name: "OVIEDO Ailin", no: 5, age: 35, caps: 40, country: "이탈리아" },
-            { name: "PASTOR Maria", no: 32, age: 36, caps: 0, country: "이탈리아" },
-            { name: "PESSINA Ivanna", no: 28, age: 35, caps: 60, country: "이탈리아" },
-            { name: "PUGLISI Sara", no: 21, age: 25, caps: 62, country: "이탈리아" },
-            { name: "SARNARI Ilaria", no: 16, age: 26, caps: 22, country: "이탈리아" },
-            { name: "TORBOL Maria", no: 2, age: 21, caps: 0, country: "이탈리아" }
-        ];
+        const AVG_AGE_GLOBAL = 25.46;
+        const AVG_CAPS_GLOBAL = 33.56;
 
-        const countries = ["대한민국", "오스트리아", "잉글랜드", "이탈리아"];
-        const countryColors = { "대한민국": "#ef4444", "오스트리아": "#3b82f6", "잉글랜드": "#10b981", "이탈리아": "#8b5cf6" };
+        // 전체 선수 135명 데이터
+        const allPlayers = [{"name":"BAUER Katharina","no":11,"age":22,"caps":23,"country":"오스트리아"},{"name":"BUCHTA Daria","no":24,"age":27,"caps":49,"country":"오스트리아"},{"name":"CZECH Johanna","no":6,"age":23,"caps":31,"country":"오스트리아"},{"name":"FELBER Fiona","no":25,"age":25,"caps":38,"country":"오스트리아"},{"name":"HAHNENKAMP Marie","no":17,"age":26,"caps":21,"country":"오스트리아"},{"name":"HASELSTEINER Anja","no":28,"age":19,"caps":8,"country":"오스트리아"},{"name":"HERZOG Helene","no":5,"age":24,"caps":28,"country":"오스트리아"},{"name":"KEMPER Carla","no":2,"age":23,"caps":23,"country":"오스트리아"},{"name":"KERN Laura","no":19,"age":23,"caps":27,"country":"오스트리아"},{"name":"KÖLBL Celina","no":29,"age":16,"caps":0,"country":"오스트리아"},{"name":"LENDL Elena","no":20,"age":17,"caps":1,"country":"오스트리아"},{"name":"MAYER Luisa","no":4,"age":26,"caps":32,"country":"오스트리아"},{"name":"MINAR Amelie","no":12,"age":21,"caps":6,"country":"오스트리아"},{"name":"PROKSCH Katharina","no":15,"age":21,"caps":25,"country":"오스트리아"},{"name":"PROKSCH Philippa","no":14,"age":18,"caps":8,"country":"오스트리아"},{"name":"PULTAR Marianne","no":21,"age":31,"caps":64,"country":"오스트리아"},{"name":"STREB Michaela","no":33,"age":24,"caps":5,"country":"오스트리아"},{"name":"VUKOVICH Kristine","no":10,"age":37,"caps":76,"country":"오스트리아"},{"name":"BALSDON Grace","no":31,"age":32,"caps":98,"country":"잉글랜드"},{"name":"BINGHAM Lottie","no":44,"age":20,"caps":11,"country":"잉글랜드"},{"name":"BOURNE Darcy","no":23,"age":24,"caps":3,"country":"잉글랜드"},{"name":"CRACKLES Fiona","no":21,"age":26,"caps":61,"country":"잉글랜드"},{"name":"CURTIS Katie","no":18,"age":23,"caps":23,"country":"잉글랜드"},{"name":"HAMILTON Sophie","no":2,"age":25,"caps":56,"country":"잉글랜드"},{"name":"HEESH Sabbie","no":25,"age":34,"caps":37,"country":"잉글랜드"},{"name":"HOWARD Tessa","no":14,"age":27,"caps":59,"country":"잉글랜드"},{"name":"HUNT Holly","no":11,"age":28,"caps":44,"country":"잉글랜드"},{"name":"MALZER Alexandra","no":5,"age":25,"caps":30,"country":"잉글랜드"},{"name":"MANTON Becky","no":3,"age":24,"caps":14,"country":"잉글랜드"},{"name":"NEAL Elizabeth","no":22,"age":27,"caps":49,"country":"잉글랜드"},{"name":"OWSLEY Lily","no":26,"age":31,"caps":139,"country":"잉글랜드"},{"name":"PEEL Flora","no":28,"age":29,"caps":52,"country":"잉글랜드"},{"name":"PRITCHARD Miriam","no":40,"age":27,"caps":18,"country":"잉글랜드"},{"name":"RAYER Elena","no":13,"age":29,"caps":91,"country":"잉글랜드"},{"name":"TAYLOR Martha","no":30,"age":24,"caps":36,"country":"잉글랜드"},{"name":"THOMPSON Amy","no":10,"age":25,"caps":3,"country":"잉글랜드"},{"name":"TOMAN Anna","no":6,"age":32,"caps":86,"country":"잉글랜드"},{"name":"WALKER Lily","no":4,"age":23,"caps":58,"country":"잉글랜드"},{"name":"BORMIDA Elettra","no":17,"age":27,"caps":41,"country":"이탈리아"},{"name":"BREA Lola","no":13,"age":25,"caps":10,"country":"이탈리아"},{"name":"CARTA Federica","no":18,"age":25,"caps":79,"country":"이탈리아"},{"name":"CARUSO Lucia Ines","no":12,"age":28,"caps":29,"country":"이탈리아"},{"name":"DALLA VITTORIA Teresa","no":3,"age":29,"caps":6,"country":"이탈리아"},{"name":"DI PAOLA Eleonora","no":8,"age":18,"caps":1,"country":"이탈리아"},{"name":"FIORELLI Maria,Agustina","no":22,"age":28,"caps":12,"country":"이탈리아"},{"name":"GRANATTO Delfina","no":25,"age":29,"caps":12,"country":"이탈리아"},{"name":"GRINBAUM Martina","no":6,"age":25,"caps":0,"country":"이탈리아"},{"name":"LAURITO Sofia","no":26,"age":32,"caps":58,"country":"이탈리아"},{"name":"LUNGHI Maria","no":15,"age":28,"caps":15,"country":"이탈리아"},{"name":"MALDONADO Sofia","no":27,"age":31,"caps":28,"country":"이탈리아"},{"name":"MORAS Guadalupe","no":9,"age":24,"caps":22,"country":"이탈리아"},{"name":"MUNITIS Emilia","no":7,"age":29,"caps":50,"country":"이탈리아"},{"name":"OVIEDO Ailin","no":5,"age":35,"caps":40,"country":"이탈리아"},{"name":"PASTOR Maria","no":32,"age":36,"caps":0,"country":"이탈리아"},{"name":"PESSINA Ivanna","no":28,"age":35,"caps":60,"country":"이탈리아"},{"name":"PUGLISI Sara","no":21,"age":25,"caps":62,"country":"이탈리아"},{"name":"SARNARI Ilaria","no":16,"age":26,"caps":22,"country":"이탈리아"},{"name":"TORBOL Maria","no":2,"age":21,"caps":0,"country":"이탈리아"},{"name":"조혜진","no":11,"age":31,"caps":153,"country":"한국"},{"name":"최지윤","no":12,"age":22,"caps":22,"country":"한국"},{"name":"최사라","no":15,"age":22,"caps":3,"country":"한국"},{"name":"홍솔벗나라","no":4,"age":21,"caps":0,"country":"한국"},{"name":"제민영","no":2,"age":27,"caps":2,"country":"한국"},{"name":"정란경","no":25,"age":21,"caps":0,"country":"한국"},{"name":"지유진","no":14,"age":25,"caps":11,"country":"한국"},{"name":"진수연","no":17,"age":27,"caps":18,"country":"한국"},{"name":"김지원","no":16,"age":24,"caps":0,"country":"한국"},{"name":"김정주","no":5,"age":24,"caps":1,"country":"한국"},{"name":"김민지","no":19,"age":26,"caps":10,"country":"한국"},{"name":"김선아","no":8,"age":25,"caps":35,"country":"한국"},{"name":"이가은","no":23,"age":24,"caps":6,"country":"한국"},{"name":"이주연","no":22,"age":25,"caps":9,"country":"한국"},{"name":"이서연","no":1,"age":23,"caps":10,"country":"한국"},{"name":"이유진","no":6,"age":23,"caps":30,"country":"한국"},{"name":"이유리","no":7,"age":31,"caps":133,"country":"한국"},{"name":"문승화","no":13,"age":29,"caps":0,"country":"한국"},{"name":"박승애","no":9,"age":26,"caps":48,"country":"한국"},{"name":"박영은","no":18,"age":22,"caps":18,"country":"한국"},{"name":"BIRCH Katie","no":11,"age":27,"caps":25,"country":"스코틀랜드"},{"name":"BLAIKIE Ruth","no":13,"age":24,"caps":27,"country":"스코틀랜드"},{"name":"BUCHANAN Jessica","no":23,"age":24,"caps":28,"country":"스코틀랜드"},{"name":"BURNET Fiona","no":27,"age":29,"caps":101,"country":"스코틀랜드"},{"name":"COSTELLO Amy","no":8,"age":28,"caps":89,"country":"스코틀랜드"},{"name":"EADIE Jennifer","no":1,"age":30,"caps":97,"country":"스코틀랜드"},{"name":"FINDLAY Ava","no":37,"age":22,"caps":12,"country":"스코틀랜드"},{"name":"HOLDGATE Katherine","no":30,"age":27,"caps":3,"country":"스코틀랜드"},{"name":"JAMIESON Sarah","no":17,"age":31,"caps":100,"country":"스코틀랜드"},{"name":"MACKENZIE Ellie","no":35,"age":23,"caps":17,"country":"스코틀랜드"},{"name":"MARTIN Jessica","no":21,"age":29,"caps":31,"country":"스코틀랜드"},{"name":"McEWAN Heather","no":15,"age":31,"caps":33,"country":"스코틀랜드"},{"name":"PEARSON Eve","no":4,"age":24,"caps":33,"country":"스코틀랜드"},{"name":"ROBERTSON Sarah","no":10,"age":32,"caps":125,"country":"스코틀랜드"},{"name":"ROXBURGH Connie","no":32,"age":20,"caps":1,"country":"스코틀랜드"},{"name":"SHIELDS Bronwyn","no":20,"age":25,"caps":4,"country":"스코틀랜드"},{"name":"STEIGER Millie","no":18,"age":27,"caps":52,"country":"스코틀랜드"},{"name":"WADSWORTH Ava","no":7,"age":20,"caps":1,"country":"스코틀랜드"},{"name":"WATSON Charlotte","no":12,"age":27,"caps":105,"country":"스코틀랜드"},{"name":"BARREIRO Maria","no":19,"age":26,"caps":27,"country":"우루과이"},{"name":"BATE Maria","no":32,"age":25,"caps":22,"country":"우루과이"},{"name":"CIVETTA Elisa","no":4,"age":23,"caps":17,"country":"우루과이"},{"name":"CRISTIANI Clementina","no":16,"age":26,"caps":25,"country":"우루과이"},{"name":"CURCIO Chiara","no":20,"age":20,"caps":5,"country":"우루과이"},{"name":"CURUTCHAGUE Lupe","no":13,"age":22,"caps":22,"country":"우루과이"},{"name":"DÍAZ Agustina","no":18,"age":22,"caps":5,"country":"우루과이"},{"name":"GOMEZ Magdalena","no":11,"age":30,"caps":26,"country":"우루과이"},{"name":"MARTINEZ Agustina","no":15,"age":26,"caps":10,"country":"우루과이"},{"name":"OLASCOAGA Lucia","no":22,"age":22,"caps":5,"country":"우루과이"},{"name":"PENALBA Florencia","no":22,"age":26,"caps":99,"country":"우루과이"},{"name":"PÉREZ Paula","no":14,"age":22,"caps":9,"country":"우루과이"},{"name":"QUINONES Manuela","no":10,"age":24,"caps":17,"country":"우루과이"},{"name":"RAGO Martina","no":7,"age":24,"caps":7,"country":"우루과이"},{"name":"RODRIGUEZ María","no":3,"age":19,"caps":1,"country":"우루과이"},{"name":"VERGA Magdalena","no":8,"age":25,"caps":7,"country":"우루과이"},{"name":"VIANA Teresa","no":17,"age":32,"caps":68,"country":"우루과이"},{"name":"VILAR Manuela","no":3,"age":31,"caps":104,"country":"우루과이"},{"name":"ATKIN Anja","no":26,"age":24,"caps":16,"country":"웨일스"},{"name":"ATKINSON Charlotte","no":3,"age":23,"caps":11,"country":"웨일스"},{"name":"BINGHAM Elizabeth","no":15,"age":31,"caps":128,"country":"웨일스"},{"name":"BULBRING Jamie","no":3,"age":22,"caps":0,"country":"웨일스"},{"name":"CRADDEN Amy","no":40,"age":21,"caps":17,"country":"웨일스"},{"name":"DANIEL Rebecca","no":4,"age":25,"caps":23,"country":"웨일스"},{"name":"DONE Holly","no":3,"age":20,"caps":2,"country":"웨일스"},{"name":"DRYSDALE Emily","no":16,"age":24,"caps":20,"country":"웨일스"},{"name":"EDWARDS Matilda","no":5,"age":20,"caps":9,"country":"웨일스"},{"name":"GOODWIN Rachel","no":2,"age":28,"caps":6,"country":"웨일스"},{"name":"HOLME Millie","no":34,"age":23,"caps":42,"country":"웨일스"},{"name":"HORRELL Ffion","no":4,"age":23,"caps":47,"country":"웨일스"},{"name":"HOWELL Isabelle","no":18,"age":26,"caps":69,"country":"웨일스"},{"name":"HUGHES Amy","no":7,"age":21,"caps":21,"country":"웨일스"},{"name":"JONES Sarah","no":8,"age":35,"caps":124,"country":"웨일스"},{"name":"PARTRIDGE Katie","no":4,"age":22,"caps":61,"country":"웨일스"},{"name":"PEERS Beth","no":3,"age":27,"caps":8,"country":"웨일스"},{"name":"ROBERTS Lily","no":5,"age":23,"caps":16,"country":"웨일스"},{"name":"THOMAS Betsan","no":7,"age":21,"caps":12,"country":"웨일스"},{"name":"WITHAM Caitlin","no":4,"age":19,"caps":16,"country":"웨일스"}];
+        
+        var countryAverages = {"한국":{"age":24.9,"caps":25.45,"color":"#ef4444"},"오스트리아":{"age":23.5,"caps":25.83,"color":"#3b82f6"},"잉글랜드":{"age":26.75,"caps":48.4,"color":"#10b981"},"이탈리아":{"age":27.8,"caps":27.35,"color":"#8b5cf6"},"스코틀랜드":{"age":26.32,"caps":46.53,"color":"#0ea5e9"},"우루과이":{"age":24.72,"caps":26.44,"color":"#f59e0b"},"웨일스":{"age":23.9,"caps":32.4,"color":"#ec4899"}};
 
-        function getTraces() {
-            let playerTraces = [];
-            let avgTraces = [];
-            
-            countries.forEach(country => {
-                const players = allPlayers.filter(p => p.country === country);
+        const countries = Object.keys(countryAverages);
+
+        function createTraces() {
+            let traces = [];
+            countries.forEach(c => {
+                const c_players = allPlayers.filter(p => p.country === c);
                 
-                // 중복 좌표 처리를 위한 그룹화 로직
+                // 좌표 중복자 합치기 로직
                 const grouped = {};
-                players.forEach(p => {
+                c_players.forEach(p => {
                     const key = `${p.age}-${p.caps}`;
                     if (!grouped[key]) grouped[key] = [];
                     grouped[key].push(p);
@@ -129,69 +57,92 @@
                 Object.values(grouped).forEach(group => {
                     finalX.push(group[0].age);
                     finalY.push(group[0].caps);
-                    // 겹치는 선수들을 " & "로 나란히 연결
-                    const names = group.map(p => `#${p.no} ${p.name}`).join(" & ");
-                    finalText.push(`<b>${names}</b>`);
-                    finalCustom.push(country);
+                    // 같은 국가 안에서 겹치면 "&"로 연결해서 보여줌
+                    finalText.push(`<b>${group.map(p => `#${p.no} ${p.name}`).join(" & ")}</b>`);
+                    finalCustom.push(c);
                 });
 
-                playerTraces.push({
+                // 선수 점 (Scatter)
+                traces.push({
                     x: finalX, y: finalY, text: finalText, customdata: finalCustom,
-                    mode: 'markers', name: country, legendgroup: country,
-                    marker: { size: 14, color: countryColors[country], opacity: 0.3, line: { width: 1, color: 'white' } },
+                    mode: 'markers', name: c, legendgroup: c,
+                    marker: { size: 14, color: countryAverages[c].color, opacity: 0.35, line: { width: 1, color: 'white' } },
                     hovertemplate: '%{text}<br>국가: %{customdata}<br>나이: %{x}세<br>출장: %{y} Caps<extra></extra>'
                 });
 
-                const avgAge = players.reduce((sum, p) => sum + p.age, 0) / players.length;
-                const avgCaps = players.reduce((sum, p) => sum + p.caps, 0) / players.length;
-                avgTraces.push({
-                    x: [avgAge], y: [avgCaps], text: [`<b>${country} 평균치</b>`], customdata: [country],
-                    mode: 'markers', name: `${country} 평균`, legendgroup: country, showlegend: false,
-                    marker: { symbol: 'star', size: 24, color: countryColors[country], line: { width: 2, color: '#1e293b' } },
-                    hovertemplate: '<b>%{text}</b><br>평균 나이: %{x:.1f}세<br>평균 출장: %{y:.1f} Caps<extra></extra>'
+                // 평균 별표 (Star)
+                traces.push({
+                    x: [countryAverages[c].age], y: [countryAverages[c].caps],
+                    text: [`<b>${c} 평균</b>`], customdata: [c],
+                    mode: 'markers', name: `${c} 평균`, legendgroup: c, showlegend: false,
+                    marker: { symbol: 'star', size: 28, color: countryAverages[c].color, line: { width: 2, color: '#0f172a' } },
+                    hovertemplate: '<b>%{text}</b><br>평균 나이: %{x}세<br>평균 출장: %{y} Caps<extra></extra>'
                 });
             });
-            return [...playerTraces, ...avgTraces];
+            return traces;
         }
 
         const layout = {
-            xaxis: { title: '연령 (Age)', range: [15, 40], gridcolor: '#e2e8f0', zeroline: false },
-            yaxis: { title: 'A매치 출장 수 (Caps)', range: [-5, 175], gridcolor: '#e2e8f0', zeroline: false },
-            margin: { l: 60, r: 40, t: 40, b: 60 },
             hovermode: 'closest',
-            plot_bgcolor: 'white',
+            xaxis: { title: '연령 (Age)', range: [15, 40], gridcolor: '#e2e8f0', zeroline: false },
+            yaxis: { title: 'A매치 경기수 (Caps)', range: [-5, 175], gridcolor: '#e2e8f0', zeroline: false },
+            margin: { l: 60, r: 40, t: 40, b: 60 },
             legend: { 
-                x: 1, y: 1.05, xanchor: 'right', yanchor: 'bottom', orientation: 'h', 
-                itemclick: 'toggle', itemdoubleclick: 'toggle'
+                orientation: 'h', y: 1.05, x: 1, xanchor: 'right', 
+                itemclick: 'toggle', itemdoubleclick: 'toggle' // 요청하신 더블클릭 필터링 유지
             },
+            plot_bgcolor: 'white',
             shapes: [
-                { type: 'line', x0: 25.8, y0: 0, x1: 25.8, y1: 170, line: { color: '#94a3b8', width: 1, dash: 'dash' } },
-                { type: 'line', x0: 15, y0: 32.3, x1: 40, y1: 32.3, line: { color: '#94a3b8', width: 1, dash: 'dash' } }
+                // 파스텔톤 배경 (Layer 아래)
+                { type: 'rect', x0: 15, y0: AVG_CAPS_GLOBAL, x1: AVG_AGE_GLOBAL, y1: 175, fillcolor: '#dcfce7', opacity: 0.3, line: {width: 0}, layer: 'below' },
+                { type: 'rect', x0: AVG_AGE_GLOBAL, y0: AVG_CAPS_GLOBAL, x1: 40, y1: 175, fillcolor: '#dbeafe', opacity: 0.3, line: {width: 0}, layer: 'below' },
+                { type: 'rect', x0: 15, y0: -5, x1: AVG_AGE_GLOBAL, y1: AVG_CAPS_GLOBAL, fillcolor: '#fef9c3', opacity: 0.3, line: {width: 0}, layer: 'below' },
+                { type: 'rect', x0: AVG_AGE_GLOBAL, y0: -5, x1: 40, y1: AVG_CAPS_GLOBAL, fillcolor: '#fee2e2', opacity: 0.3, line: {width: 0}, layer: 'below' },
+                // 기준선
+                { type: 'line', x0: AVG_AGE_GLOBAL, y0: -5, x1: AVG_AGE_GLOBAL, y1: 175, line: { color: '#94a3b8', width: 2, dash: 'dashdot' } },
+                { type: 'line', x0: 15, y0: AVG_CAPS_GLOBAL, x1: 40, y1: AVG_CAPS_GLOBAL, line: { color: '#94a3b8', width: 2, dash: 'dashdot' } }
             ]
         };
 
-        Plotly.newPlot('chart-area', getTraces(), layout, {responsive: true, displayModeBar: false});
+        Plotly.newPlot('chart-area', createTraces(), layout, {responsive: true, displayModeBar: false});
 
         const myPlot = document.getElementById('chart-area');
 
+        // 하이라이트 효과 (오류 없이 안정적인 인덱싱)
         myPlot.on('plotly_hover', function(data){
             const hoveredCountry = data.points[0].customdata;
             const opacities = [], sizes = [];
             countries.forEach((c, i) => {
                 const isMatch = (c === hoveredCountry);
-                opacities[i] = isMatch ? 1.0 : 0.05;
-                sizes[i] = isMatch ? 18 : 8;
-                opacities[i + 4] = isMatch ? 1.0 : 0.05;
-                sizes[i + 4] = isMatch ? 30 : 12;
+                opacities[i*2] = isMatch ? 1.0 : 0.05; // 선수
+                sizes[i*2] = isMatch ? 18 : 8;
+                opacities[i*2+1] = isMatch ? 1.0 : 0.05; // 별표
+                sizes[i*2+1] = isMatch ? 35 : 12;
             });
             Plotly.restyle('chart-area', { 'marker.opacity': opacities, 'marker.size': sizes });
         });
 
-        myPlot.on('plotly_unhover', function(data){
-            Plotly.restyle('chart-area', { 
-                'marker.opacity': [0.3, 0.3, 0.3, 0.3, 1.0, 1.0, 1.0, 1.0],
-                'marker.size': [14, 14, 14, 14, 24, 24, 24, 24]
+        myPlot.on('plotly_unhover', function(){
+            const defaultOpacities = [], defaultSizes = [];
+            countries.forEach((c, i) => {
+                defaultOpacities[i*2] = 0.35; defaultSizes[i*2] = 14;
+                defaultOpacities[i*2+1] = 1.0; defaultSizes[i*2+1] = 28;
             });
+            Plotly.restyle('chart-area', { 'marker.opacity': defaultOpacities, 'marker.size': defaultSizes });
+        });
+
+        // 하단 요약표
+        const summaryDiv = document.getElementById('stats-summary');
+        countries.forEach(c => {
+            const card = document.createElement('div');
+            card.className = "bg-white p-4 rounded-xl shadow-sm border-l-4";
+            card.style.borderColor = countryAverages[c].color;
+            card.innerHTML = `
+                <h3 class="font-bold text-slate-800 text-sm">${c}</h3>
+                <p class="text-xs text-slate-500 mt-1">Age: <span class="text-slate-900 font-semibold">${countryAverages[c].age}세</span></p>
+                <p class="text-xs text-slate-500">Caps: <span class="text-slate-900 font-semibold">${countryAverages[c].caps}회</span></p>
+            `;
+            summaryDiv.appendChild(card);
         });
     </script>
 </body>
