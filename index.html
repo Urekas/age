@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FIH 2026 월드컵 예선: A조 4개국 출장수x연령 데이터</title>
+    <title>FIH 2026 월드컵 예선: 정밀 하이라이트 시스템</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -17,8 +17,7 @@
     <div class="max-w-7xl mx-auto dashboard-card overflow-hidden">
         <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-extrabold">FIH 2026 WOMEN'S WORLD CUP QUALIFIERS</h1>
-                <p class="text-slate-400 text-sm mt-1">국가별 평균 데이터 복구 및 인터랙티브 하이라이트 시스템</p>
+                <h1 class="text-2xl font-extrabold text-red-500">KOREA <span class="text-white text-xl">vs</span> <span class="text-blue-500 text-2xl">AUSTRIA</span> <span class="text-white text-sm font-normal ml-2">4개국 정밀 하이라이트</span></h1>
             </div>
         </div>
         
@@ -28,8 +27,9 @@
     </div>
 
     <script>
+        // 데이터는 이전과 동일 (생략 없이 모두 포함)
         const allPlayers = [
-            // 대한민국 (20명)
+            // 대한민국
             { name: "조혜진", no: 11, age: 31, caps: 153, country: "대한민국" },
             { name: "최지윤", no: 12, age: 22, caps: 22, country: "대한민국" },
             { name: "최사라", no: 15, age: 22, caps: 3, country: "대한민국" },
@@ -50,8 +50,7 @@
             { name: "문승화", no: 13, age: 29, caps: 0, country: "대한민국" },
             { name: "박승애", no: 9, age: 26, caps: 48, country: "대한민국" },
             { name: "박영은", no: 18, age: 22, caps: 18, country: "대한민국" },
-
-            // 오스트리아 (18명)
+            // 오스트리아
             { name: "BAUER Katharina", no: 11, age: 22, caps: 23, country: "오스트리아" },
             { name: "BUCHTA Daria", no: 24, age: 27, caps: 49, country: "오스트리아" },
             { name: "CZECH Johanna", no: 6, age: 23, caps: 31, country: "오스트리아" },
@@ -70,8 +69,7 @@
             { name: "PULTAR Marianne", no: 21, age: 31, caps: 64, country: "오스트리아" },
             { name: "STREB Michaela", no: 33, age: 24, caps: 5, country: "오스트리아" },
             { name: "VUKOVICH Kristine", no: 10, age: 37, caps: 76, country: "오스트리아" },
-
-            // 잉글랜드 (20명)
+            // 잉글랜드
             { name: "BALSDON Grace", no: 31, age: 32, caps: 98, country: "잉글랜드" },
             { name: "BINGHAM Lottie", no: 44, age: 20, caps: 11, country: "잉글랜드" },
             { name: "BOURNE Darcy", no: 23, age: 24, caps: 31, country: "잉글랜드" },
@@ -92,8 +90,7 @@
             { name: "THOMPSON Amy", no: 10, age: 25, caps: 3, country: "잉글랜드" },
             { name: "TOMAN Anna", no: 6, age: 32, caps: 86, country: "잉글랜드" },
             { name: "WALKER Lily", no: 4, age: 23, caps: 58, country: "잉글랜드" },
-
-            // 이탈리아 (20명)
+            // 이탈리아
             { name: "BORMIDA Elettra", no: 17, age: 27, caps: 41, country: "이탈리아" },
             { name: "BREA Lola", no: 13, age: 25, caps: 10, country: "이탈리아" },
             { name: "CARTA Federica", no: 18, age: 25, caps: 79, country: "이탈리아" },
@@ -120,12 +117,13 @@
         const countryColors = { "대한민국": "#ef4444", "오스트리아": "#3b82f6", "잉글랜드": "#10b981", "이탈리아": "#8b5cf6" };
 
         function getTraces() {
-            let traces = [];
+            let playerTraces = [];
+            let avgTraces = [];
             
-            // 1. 개별 선수 점 (Scatter)
             countries.forEach(country => {
                 const players = allPlayers.filter(p => p.country === country);
-                traces.push({
+                // 1. 개별 선수 점
+                playerTraces.push({
                     x: players.map(p => p.age),
                     y: players.map(p => p.caps),
                     text: players.map(p => `<b>#${p.no} ${p.name}</b>`),
@@ -136,15 +134,11 @@
                     marker: { size: 13, color: countryColors[country], opacity: 0.3, line: { width: 1, color: 'white' } },
                     hovertemplate: '%{text}<br>국가: %{customdata}<br>나이: %{x}세<br>출장: %{y} Caps<extra></extra>'
                 });
-            });
 
-            // 2. 국가별 평균 별표 (Star) - 범례에서 개별 선수와 같이 묶임
-            countries.forEach(country => {
-                const players = allPlayers.filter(p => p.country === country);
+                // 2. 국가별 평균 별표
                 const avgAge = players.reduce((sum, p) => sum + p.age, 0) / players.length;
                 const avgCaps = players.reduce((sum, p) => sum + p.caps, 0) / players.length;
-
-                traces.push({
+                avgTraces.push({
                     x: [avgAge],
                     y: [avgCaps],
                     text: [`<b>${country} 평균치</b>`],
@@ -152,16 +146,12 @@
                     mode: 'markers',
                     name: `${country} 평균`,
                     legendgroup: country,
-                    showlegend: false, // 별도의 범례 항목으로 만들지 않고 그룹에 통합
-                    marker: {
-                        symbol: 'star', size: 22, color: countryColors[country],
-                        line: { width: 2, color: '#1e293b' }
-                    },
+                    showlegend: false,
+                    marker: { symbol: 'star', size: 22, color: countryColors[country], line: { width: 2, color: '#1e293b' } },
                     hovertemplate: '<b>%{text}</b><br>평균 나이: %{x:.1f}세<br>평균 출장: %{y:.1f} Caps<extra></extra>'
                 });
             });
-
-            return traces;
+            return [...playerTraces, ...avgTraces];
         }
 
         const layout = {
@@ -170,13 +160,11 @@
             margin: { l: 60, r: 40, t: 40, b: 60 },
             hovermode: 'closest',
             plot_bgcolor: 'white',
-            // 더블클릭 시 Plotly 기본 동작(하나만 남기고 숨기기) 방지
-            clickmode: 'event', 
             legend: { 
                 x: 1, y: 1.05, xanchor: 'right', yanchor: 'bottom', 
                 orientation: 'h', font: { size: 12 },
-                itemclick: 'toggle', // 한 번 클릭 시 끄기/켜기
-                itemdoubleclick: 'toggle' // 더블클릭 시에도 하나만 남지 않고 해당 국가만 토글
+                itemclick: 'toggle',
+                itemdoubleclick: 'toggle'
             },
             shapes: [
                 { type: 'line', x0: 25.8, y0: 0, x1: 25.8, y1: 170, line: { color: '#94a3b8', width: 1, dash: 'dash' } },
@@ -188,21 +176,31 @@
 
         const myPlot = document.getElementById('chart-area');
 
-        // 하이라이트 효과
+        // 하이라이트 효과 (인덱스 보정 완료)
         myPlot.on('plotly_hover', function(data){
             const hoveredCountry = data.points[0].customdata;
-            const update = {
-                'marker.opacity': countries.flatMap(c => [c === hoveredCountry ? 1.0 : 0.05, c === hoveredCountry ? 1.0 : 0.05]),
-                'marker.size': countries.flatMap(c => [c === hoveredCountry ? 16 : 8, c === hoveredCountry ? 25 : 12])
-            };
-            Plotly.restyle('chart-area', update);
+            const opacities = [];
+            const sizes = [];
+
+            // 0~3번 인덱스는 점, 4~7번 인덱스는 별표
+            countries.forEach((c, i) => {
+                const isMatch = (c === hoveredCountry);
+                // 점(Scatter) 데이터용 설정
+                opacities[i] = isMatch ? 1.0 : 0.05;
+                sizes[i] = isMatch ? 16 : 8;
+                // 별표(Star) 데이터용 설정 (인덱스 + 4)
+                opacities[i + 4] = isMatch ? 1.0 : 0.05;
+                sizes[i + 4] = isMatch ? 28 : 12;
+            });
+
+            Plotly.restyle('chart-area', { 'marker.opacity': opacities, 'marker.size': sizes });
         });
 
         myPlot.on('plotly_unhover', function(data){
-            Plotly.restyle('chart-area', { 
-                'marker.opacity': countries.flatMap(c => [0.3, 1.0]),
-                'marker.size': countries.flatMap(c => [13, 22])
-            });
+            // 기본 상태로 복구 (점 0.3, 별표 1.0)
+            const defaultOpacities = [0.3, 0.3, 0.3, 0.3, 1.0, 1.0, 1.0, 1.0];
+            const defaultSizes = [13, 13, 13, 13, 22, 22, 22, 22];
+            Plotly.restyle('chart-area', { 'marker.opacity': defaultOpacities, 'marker.size': defaultSizes });
         });
 
     </script>
